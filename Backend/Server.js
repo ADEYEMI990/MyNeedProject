@@ -33,10 +33,11 @@
 // });
 
 import express from "express";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
 import userRouter from "./routes/userRoute.js";
+import productRouter from "./routes/productRoute.js";
 
 dotenv.config(); // Load environment variables
 
@@ -48,7 +49,8 @@ connectCloudinary();
 app.use(express.json());
 
 // api endpoints
-app.use('/api/user',userRouter)
+app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
 
 // Define a route for the root URL
 app.get("/", (req, res) => {
