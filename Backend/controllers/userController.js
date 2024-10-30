@@ -79,18 +79,40 @@ const registerUser = async (req, res) => {
 };
 
 // Route for admin login
+// const adminLogin = async (req, res) => {
+//   try {
+//     const {email,password} = req.body
+//     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+//       const token = jwt.sign(email+password,process.env.JWT_SECRET);
+//       res.json({success:true,token})
+//     } else {
+//       res.json({success:false,message:"Invalid credentials"})
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ success: false, message: error.message });
+//   }
+// };
+
 const adminLogin = async (req, res) => {
   try {
-    const {email,password} = req.body
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password are required" });
+    }
+
+    // Check admin credentials
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign(email+password,process.env.JWT_SECRET);
-      res.json({success:true,token})
+      const token = createToken('admin'); // Use a static identifier or ID
+      return res.status(200).json({ success: true, token });
     } else {
-      res.json({success:false,message:"Invalid credentials"})
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

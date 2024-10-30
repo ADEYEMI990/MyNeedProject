@@ -32,23 +32,77 @@
 //     console.log(`Server is running on port ${PORT}`);
 // });
 
+// import express from "express";
+// import dotenv from "dotenv";
+// import cors from "cors"; // Import the CORS packagenpm ru
+// import connectDB from "./config/mongodb.js";
+// import connectCloudinary from "./config/cloudinary.js";
+// import userRouter from "./routes/userRoute.js";
+// import productRouter from "./routes/productRoute.js";
+
+// dotenv.config(); // Load environment variables
+
+// const app = express();
+// connectDB();
+// connectCloudinary();
+
+// // Enable CORS
+// app.use(cors({
+//   origin: 'http://localhost:5174', // Allow requests from this origin
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Specify allowed methods
+//   credentials: true, // Allow credentials (optional)
+// }));
+
+// // middlewares
+// app.use(express.json());
+
+// // api endpoints
+// app.use("/api/user", userRouter);
+// app.use("/api/product", productRouter);
+
+// // Define a route for the root URL
+// app.get("/", (req, res) => {
+//   res.send("Welcome to my API!");
+// });
+
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).json({ success: false, message: 'Internal Server Error' });
+// });
+
+// const PORT = process.env.PORT || 4000;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
+
+
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors"; 
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
 import userRouter from "./routes/userRoute.js";
 import productRouter from "./routes/productRoute.js";
+import morgan from "morgan"; // HTTP request logging
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const app = express();
 connectDB();
 connectCloudinary();
 
-// middlewares
-app.use(express.json());
+// Enable CORS
+app.use(cors({
+  origin: 'http://localhost:5174',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+}));
 
-// api endpoints
+// Middleware
+app.use(express.json());
+app.use(morgan('dev')); // Log requests to the console
+
+// API endpoints
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 
@@ -57,7 +111,22 @@ app.get("/", (req, res) => {
   res.send("Welcome to my API!");
 });
 
+// Global error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, message: 'Internal Server Error' });
+});
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log("Shutting down server...");
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
 });
