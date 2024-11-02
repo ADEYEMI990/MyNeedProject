@@ -3,34 +3,56 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 
-const createToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET);
+const createToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
 // Route for user login
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await userModel.findOne({ email });
 
     if (!user) {
-      return res.json({ success: false, message: "user doesn't exists" });
+      return res.status(404).json({ success: false, message: "User doesn't exist" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (isMatch) {
-      const token = createToken(user._id);
-      res.json({ success: true, token });
+      const token = createToken({ id: user._id, role: user.role }); // Include user role
+      return res.status(200).json({ success: true, token });
     } else {
-      res.json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: error.message });
-  }
+    return res.status(500).json({ success: false, message: "Internal server error" });}
 };
+
+// const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await userModel.findOne({ email });
+
+//     if (!user) {
+//       return res.json({ success: false, message: "user doesn't exists" });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+
+//     if (isMatch) {
+//       const token = createToken(user._id);
+//       res.json({ success: true, token });
+//     } else {
+//       res.json({ success: false, message: "Invalid credentials" });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ success: false, message: error.message });
+//   }
+// };
 
 // Route for user register
 const registerUser = async (req, res) => {
@@ -94,6 +116,28 @@ const registerUser = async (req, res) => {
 //   }
 // };
 
+// const adminLogin = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // Validate input
+//     if (!email || !password) {
+//       return res.status(400).json({ success: false, message: "Email and password are required" });
+//     }
+
+//     // Check admin credentials
+//     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+//       const token = createToken('admin'); // Use a static identifier or ID
+//       return res.status(200).json({ success: true, token });
+//     } else {
+//       return res.status(401).json({ success: false, message: "Invalid credentials" });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -105,7 +149,7 @@ const adminLogin = async (req, res) => {
 
     // Check admin credentials
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-      const token = createToken('admin'); // Use a static identifier or ID
+      const token = createToken({ id: 'admin', role: 'admin' }); // Include role in token
       return res.status(200).json({ success: true, token });
     } else {
       return res.status(401).json({ success: false, message: "Invalid credentials" });

@@ -2,6 +2,7 @@ import axios from 'axios'
 import React, { useState } from 'react'
 import { backendUrl } from '../App'
 import { toast } from 'react-toastify'
+import PropTypes from 'prop-types'; // Make sure this import is included
 
 const Login = ({setToken}) => {
 
@@ -14,6 +15,7 @@ const Login = ({setToken}) => {
         const response = await axios.post(backendUrl + '/api/user/admin',{email,password})
         if (response.data.success) {
           setToken(response.data.token)
+          // setToken(response.data.token)
         } else {
           toast.error(response.data.message)
         }
@@ -42,5 +44,10 @@ const Login = ({setToken}) => {
     </div>
   )
 }
+
+// Define prop types for the Login component
+Login.propTypes = {
+  setToken: PropTypes.func.isRequired,
+};
 
 export default Login
