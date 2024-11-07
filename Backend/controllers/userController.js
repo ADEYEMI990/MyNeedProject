@@ -57,7 +57,8 @@ const loginUser = async (req, res) => {
 // Route for user register
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    
+    const { name, email, password } = req.body;  // Directly access the data without .payload
 
     // checking user already exists or not
     const exists = await userModel.findOne({ email });
@@ -91,7 +92,8 @@ const registerUser = async (req, res) => {
 
     const user = await newUser.save();
 
-    const token = createToken(user._id);
+    // Make sure the token payload is a plain object
+    const token = createToken({ id: user._id });
 
     res.json({ success: true, token });
   } catch (error) {
