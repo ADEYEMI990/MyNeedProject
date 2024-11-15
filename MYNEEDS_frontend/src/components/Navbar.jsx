@@ -11,7 +11,13 @@ import { ShopContext } from '../context/ShopContext';
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
 
-  const {setShowSearch, getCartCount, navigate, token, setToken, setCartItems} = useContext(ShopContext);
+  const {setShowSearch, getCartCount, loadingCart, navigate, token, setToken, setCartItems, cartItems} = useContext(ShopContext);
+
+  console.log('Cart Items in Navbar:', cartItems);
+
+  const cartCount = getCartCount(); // This will now handle cases where cartItems is undefined or null
+  console.log('Cart Count in Navbar:', cartCount);
+  
 
   const logout = () => {
     navigate('/login')
@@ -74,7 +80,18 @@ const Navbar = () => {
           {/* <img src={assets.cart_icon} className= 'w-5 min-w-5' alt="" /> */}
           <IoCartOutline className= 'w-7 h-7 cursor-pointer' />
 
-          <p className= 'absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]'>{getCartCount()}</p>
+          {/* Cart Count or Loading Spinner */}
+          {loadingCart ? (
+            <div className= "absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px] flex items-center justify-center">
+              <span className= "animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span>
+            </div>
+          ) : (
+            <p className= 'absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]'>
+              {cartCount}
+            </p>
+          )}
+
+          {/* <p className= 'absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]'>{getCartCount()}</p> */}
         </Link>
         {/* <img onClick={()=> {setVisible(true)}} src={assets.menu_icon} className= 'w-5 cursor-pointer sm:hidden' alt="" /> */}
         <IoIosMenu onClick={()=> {setVisible(true)}} className= 'w-7 h-7 cursor-pointer sm:hidden' />

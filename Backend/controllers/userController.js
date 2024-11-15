@@ -21,6 +21,7 @@ const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
       const token = createToken({ id: user._id, role: user.role }); // Include user role
+      console.log("Generated Token:", token);
       return res.status(200).json({ success: true, token });
     } else {
       return res.status(401).json({ success: false, message: "Invalid credentials" });

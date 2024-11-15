@@ -5,7 +5,8 @@ const connectCloudinary = async () => {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET 
+    api_secret: process.env.CLOUDINARY_SECRET,
+    timeout: 60000 // Set timeout to 60 seconds (default is usually 30 seconds)
   })
 
 }

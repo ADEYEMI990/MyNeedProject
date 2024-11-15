@@ -84,6 +84,9 @@ import connectCloudinary from "./config/cloudinary.js";
 import userRouter from "./routes/userRoute.js";
 import productRouter from "./routes/productRoute.js";
 import morgan from "morgan"; // HTTP request logging
+import cartRouter from "./routes/cartRoute.js";
+import userModel from "./models/userModel.js";
+import authUser from "./middleware/auth.js";
 
 dotenv.config();
 
@@ -113,11 +116,41 @@ app.use(morgan('dev')); // Log requests to the console
 // API endpoints
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
+app.use("/api/cart", cartRouter);
 
-// Define a route for the root URL
-app.get("/", (req, res) => {
-  res.send("Welcome to my API!");
+// Cart endpoint
+// app.get('/api/cart/get',authUser, async (req, res) => {
+//   try {
+//     const userId = req.user.id; // Get the user ID from the JWT token or session
+//     console.log("Fetching cart for user ID:", userId);
+//     const cartItems = await userModel.find({ userId }); // Fetch the cart data for the user
+//     console.log("Cart Items:", cartItems);
+//     if (!cartItems || cartItems.length === 0) {
+//       console.log("No cart items found for user ID:", userId);
+//       return res.status(404).json({ message: "Cart is empty or not found" });
+//     }
+//     res.json({ cartItems });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error fetching cart items' });
+//   }
+// });
+
+app.get("/api/cart/get",authUser, async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming you get the user ID from JWT or session
+    const user = await userModel.findById(userId); // Fetch the user by ID
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ cartItems: user.cartData }); // Return the cartData field from user document
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    res.status(500).json({ message: "Error fetching cart items" });
+  }
 });
+
 
 // Global error handling
 app.use((err, req, res, next) => {

@@ -6,7 +6,8 @@ import { toast } from 'react-toastify';
 const Login = () => {
 
   const [currentState, setCurrentState] = useState('Login');
-  const { token, setToken, navigate, backendUrl } = useContext(ShopContext)
+  const { token, setToken, navigate, backendUrl } = useContext(ShopContext);
+  console.log('Backend URL in Login.jsx:', backendUrl); // Log it to verify
 
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
@@ -15,6 +16,9 @@ const Login = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
     try {
+      let url = `${backendUrl}/api/user/login`;  // Construct the URL
+      console.log('Making request to:', url);  // Log the constructed URL
+
       if (currentState === 'Sign Up') {
         
         const response = await axios.post(backendUrl + '/api/user/register',{ name, email, password },{
@@ -40,7 +44,7 @@ const Login = () => {
         }
         
       }
-
+      console.log('Backend URL:', backendUrl);
     } catch (error) {
       console.log(error);
       toast.error(error.message)
