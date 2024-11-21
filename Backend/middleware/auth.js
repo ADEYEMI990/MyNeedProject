@@ -16,12 +16,13 @@ const authUser = async (req, res, next) => {
   try {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.id) {
+      return res.status(401).json({ success: false, message: 'Invalid token payload' });
+    }
     console.log('Decoded JWT:', decoded); 
     // req.userId = decoded.id; // Assuming token contains userId
     // console.log('Authenticated User ID:', req.userId);
     
-    // Assign the userId to req.userId
-    req.userId = decoded.id;
 
     const user = await userModel.findById(decoded.id); // Fetch the user from the DB
     if (!user) {
@@ -34,11 +35,9 @@ const authUser = async (req, res, next) => {
     next();
 
   } catch (error) {
-    console.log('JWT verification failed:', error);
+    console.error('Error in authUser middleware:', error);  // Log error here
 
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ success: false, message: 'Token expired. Please log in again.' });
-    }
+    
 
     res.status(401).json({ success: false, message: error.message })
   }

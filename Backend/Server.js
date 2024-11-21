@@ -87,6 +87,9 @@ import morgan from "morgan"; // HTTP request logging
 import cartRouter from "./routes/cartRoute.js";
 import userModel from "./models/userModel.js";
 import authUser from "./middleware/auth.js";
+import orderRouter from "./routes/orderRoute.js";
+import orderModel from "./models/orderModel.js";
+import mongoose from 'mongoose'
 
 dotenv.config();
 
@@ -117,23 +120,8 @@ app.use(morgan('dev')); // Log requests to the console
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
+app.use('/api/order', orderRouter);
 
-// Cart endpoint
-// app.get('/api/cart/get',authUser, async (req, res) => {
-//   try {
-//     const userId = req.user.id; // Get the user ID from the JWT token or session
-//     console.log("Fetching cart for user ID:", userId);
-//     const cartItems = await userModel.find({ userId }); // Fetch the cart data for the user
-//     console.log("Cart Items:", cartItems);
-//     if (!cartItems || cartItems.length === 0) {
-//       console.log("No cart items found for user ID:", userId);
-//       return res.status(404).json({ message: "Cart is empty or not found" });
-//     }
-//     res.json({ cartItems });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Error fetching cart items' });
-//   }
-// });
 
 app.get("/api/cart/get",authUser, async (req, res) => {
   try {
@@ -151,8 +139,204 @@ app.get("/api/cart/get",authUser, async (req, res) => {
   }
 });
 
+// app.post("/api/cart/add", authUser, async (req, res) => {
+//   try {
+//     const { itemId, size } = req.body;
+//     const userId = req.user.id;  // Get userId from authenticated user
+
+//     if (!itemId || !size) {
+//       return res.status(400).json({ message: "ItemId and Size are required" });
+//     }
+
+//     const user = await userModel.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Proceed with adding item to cart
+//     const cartData = user.cartData || {};
+//     if (!cartData[itemId]) {
+//       cartData[itemId] = {};
+//     }
+//     if (!cartData[itemId][size]) {
+//       cartData[itemId][size] = 0;
+//     }
+//     cartData[itemId][size] += 1; // Increment the cart count for the specific item/size
+
+//     user.cartData = cartData;  // Save the updated cartData
+//     await user.save();
+
+//     res.status(200).json({ success: true, message: "Item added to cart", cartData });
+//   } catch (error) {
+//     console.error("Error adding to cart:", error);
+//     res.status(500).json({ success: false, message: "Error adding to cart" });
+//   }
+// });
+
+app.post('/api/order/place', authUser, async (req, res) => {
+  try {
+    console.log('Authenticated user from request:', req.user);
+
+    const { amount, items, address, paymentMethod } = req.body;
+    const userId = req.user?.id;  // Extract the user ID from the token (auth middleware)
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'User ID is missing' });
+    }
+
+    console.log("Received userId:", userId);
+
+    if (!amount || !items || !address || !paymentMethod) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const newOrder = new orderModel({
+      userId,  // Set the userId to the authenticated user's ID
+      items,
+      amount,
+      address,
+      status: 'Order Placed', // default status
+      paymentMethod,
+      payment: false, // Assuming it's unpaid initially
+      date: Date.now()  // Save the current timestamp
+    });
+
+    await newOrder.save();  // Save the new order in the database
+    res.status(201).json({ success: true, order: newOrder });
+
+  } catch (error) {
+    console.error('Error placing order:', error);
+    res.status(500).json({ success: false, message: 'Error placing order' });
+  }
+});
+
+// app.get('/api/order/user', authUser, async (req, res) => {
+//   try {
+//     const userId = req.user.id;  // Assuming you have decoded the token and attached user info
+//     console.log("Fetching orders for user:", userId);
+//     const orders = await orderModel.find({ userId: userId });
+//     console.log("Found orders:", orders);
+
+//     if (orders.length === 0) {
+//       return res.status(404).json({ success: false, message: 'No orders found' });
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       orders: orders
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+//   }
+// });
+
 
 // Global error handling
+
+// app.get('/api/order/user', authUser, async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     console.log("Fetching orders for user:", userId);
+
+//     // Fetch orders for the user and populate the items with product details
+//     const orders = await orderModel.aggregate([
+//       { $match: { userId: mongoose.Types.ObjectId(userId) } },
+//       {
+//         $lookup: {
+//           from: 'products',  // Assuming your product collection is named 'products'
+//           localField: 'items.itemId',  // The field in orders that refers to product IDs
+//           foreignField: '_id',  // The field in the product collection that holds the product ID
+//           as: 'orderDetails'  // Alias for the product data in the result
+//         }
+//       },
+//       {
+//         $unwind: '$orderDetails'  // Flatten the product details into the order document
+//       }
+//     ]);
+
+//     console.log("Found orders:", orders);
+
+//     if (orders.length === 0) {
+//       return res.status(404).json({ success: false, message: 'No orders found' });
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       orders: orders.map(order => ({
+//         ...order,
+//         items: order.items.map(item => ({
+//           ...item,
+//           product: item.orderDetails  // Attach product details to each item
+//         }))
+//       }))
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+//   }
+// });
+
+app.get('/api/order/user', authUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log("Fetching orders for user:", userId);
+
+    // Fetch orders for the user and populate the items with product details
+    const orders = await orderModel.aggregate([
+      { $match: { userId:new mongoose.Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: 'products',  // Assuming your product collection is named 'products'
+          localField: 'items.itemId',  // The field in orders that refers to product IDs
+          foreignField: '_id',  // The field in the product collection that holds the product ID
+          as: 'orderDetails'  // Alias for the product data in the result
+        }
+      },
+      {
+        $addFields: {
+          items: {
+            $map: {
+              input: '$items',
+              as: 'item',
+              in: {
+                $mergeObjects: [
+                  '$$item',
+                  {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: '$orderDetails',
+                          as: 'prod',
+                          cond: { $eq: ['$$prod._id', '$$item.itemId'] }
+                        }
+                      },
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    console.log("Found orders:", orders);
+
+    if (orders.length === 0) {
+      return res.status(404).json({ success: false, message: 'No orders found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      orders: orders
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Internal Server Error' });
