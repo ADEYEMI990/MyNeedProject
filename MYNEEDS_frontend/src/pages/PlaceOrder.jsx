@@ -71,7 +71,8 @@ const PlaceOrder = () => {
       let orderData = {
         address: formData,
         items: orderItems,
-        amount: getCartAmount() + delivery_fee
+        amount: getCartAmount() + delivery_fee,
+        paymentMethod: method, // Add paymentMethod field here
       }
 
       console.log('Order Data:', orderData);
@@ -216,7 +217,7 @@ const PlaceOrder = () => {
           <div className="flex gap-3 flex-col lg:flex-row">
             <div
               onClick={() => setMethod("opay")}
-              className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
+              className= "flex items-center gap-3 border p-2 px-3 cursor-pointer"
             >
               <p
                 className={`min-w-3.5 h-3.5 border rounded-full ${
