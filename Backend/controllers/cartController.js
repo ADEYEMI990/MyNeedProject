@@ -16,7 +16,7 @@ const addToCart = async (req,res) => {
       return res.json({ success: false, message: 'User not found' });
     }
 
-    let cartData = await userData.cartData || {} ;
+    let cartData = userData.cartData || {} ;
 
     console.log('Current Cart Data:', cartData);
     
@@ -52,16 +52,34 @@ const addToCart = async (req,res) => {
 const updateCart = async (req,res) => {
   try {
     
-    const { userId, itemId, size, quantity } = req.body
+    // Destructure the values from the request body
+    const { itemId, size, quantity } = req.body;
+    const userId = req.userId;  // Use req.userId from the middleware
+
+     // Log the incoming request data
+     console.log('Received:', { userId, itemId, size, quantity });
 
     const userData = await userModel.findById(userId)
-    let cartData = await userData.cartData;
+    let cartData = userData.cartData;
     
-    // Check if item and size exist before updating
-    if (cartData[itemId] && cartData[itemId][size]) {
-      cartData[itemId][size] = quantity;
+    
+    if (quantity <= 0) {
+      // If quantity is 0 or less, delete the item from the cart
+      if (cartData[itemId] && cartData[itemId][size]) {
+        delete cartData[itemId][size];  // Remove the specific size from the item
+        // If no more sizes exist for the item, remove the entire item from the cart
+        if (Object.keys(cartData[itemId]).length === 0) {
+          delete cartData[itemId];
+        }
+      }
     } else {
-      return res.json({ success: false, message: "Item or size not found in cart" });
+      // If quantity is greater than 0, update the quantity for the specific item and size
+      if (cartData[itemId] && cartData[itemId][size]) {
+        cartData[itemId][size] = quantity;  // Update the quantity
+      } else {
+        // If item doesn't exist in the cart, return an error message
+        return res.json({ success: false, message: "Item or size not found in cart" });
+      }
     }
 
     await userModel.findByIdAndUpdate(userId, {cartData})

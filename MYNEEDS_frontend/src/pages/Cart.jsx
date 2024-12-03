@@ -62,7 +62,24 @@ const Cart = () => {
                     </div>
                   </div>
                 </div>
-                <input onChange={(e)=> e.target.value === ''|| e.target.value === '0' ? null : updateQuantity(item._id,item.size,Number(e.target.value))} className= 'border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1' type="number" min={1} step="1"  defaultValue={item.quantity} />
+
+                <input
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    // Ensure the value is greater than 0 before updating the quantity
+                    if (value > 0) {
+                      updateQuantity(item._id, item.size, value); // Update the cart only if value > 0
+                    }
+                  }}
+                  className='border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1'
+                  type="number"
+                  min={1}
+                  step="1"
+                  defaultValue={item.quantity}
+                />
+
+
+                {/* <input onChange={(e)=> e.target.value === ''|| e.target.value === '0' ? null : updateQuantity(item._id,item.size,Number(e.target.value))} className= 'border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1' type="number" min={1} step="1"  defaultValue={item.quantity} /> */}
                 {/* <img className='w-4 mr-4 cursor-pointer ' src={assets.bin_icon} alt="" /> */}
                 <RiDeleteBinLine onClick={()=>updateQuantity(item._id,item.size,0)} className= 'w-4 mr-4 cursor-pointer ' src={assets.bin_icon} />
               </div>

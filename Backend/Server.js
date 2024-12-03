@@ -124,13 +124,6 @@ app.get("/api/cart/get",authUser, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-// app.get('/',(reg,res)=>{
-//   res.send('API working')
-// })
-
-// app.listen(port, ()=> console.log('Server started on PORT : '+ port))
-
-// impo
 
     res.json({ cartItems: user.cartData }); // Return the cartData field from user document
   } catch (error) {

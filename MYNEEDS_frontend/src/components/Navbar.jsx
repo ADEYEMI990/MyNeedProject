@@ -13,10 +13,10 @@ const Navbar = () => {
 
   const {setShowSearch, getCartCount, loadingCart, navigate, token, setToken, setCartItems, cartItems} = useContext(ShopContext);
 
-  console.log('Cart Items in Navbar:', cartItems);
+  
 
   const cartCount = getCartCount(); // This will now handle cases where cartItems is undefined or null
-  console.log('Cart Count in Navbar:', cartCount);
+  
   
 
   const logout = () => {

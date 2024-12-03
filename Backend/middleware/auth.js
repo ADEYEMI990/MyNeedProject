@@ -20,6 +20,11 @@ const authUser = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid token payload' });
     }
     console.log('Decoded JWT:', decoded); 
+
+     // Attach the userId to req.userId
+     req.userId = decoded.id; // Use decoded.id for userId
+     console.log('Authenticated User ID:', req.userId);
+     
     // req.userId = decoded.id; // Assuming token contains userId
     // console.log('Authenticated User ID:', req.userId);
     

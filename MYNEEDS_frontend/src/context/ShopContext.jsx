@@ -31,11 +31,15 @@ const ShopContextProvider = (props) => {
   const [orderItems, setOrderItems] = useState([]);
 
 
+  
+
   useEffect(() => {
     if (cartItems) {
       localStorage.setItem("cartItems", JSON.stringify(cartItems));
     }
   }, [cartItems]);
+
+  
 
   const addToCart = async (itemId, size) => {
     if (!size) {
@@ -61,12 +65,11 @@ const ShopContextProvider = (props) => {
 
     localStorage.setItem("cartItems", JSON.stringify(cartData));
 
-    console.log("Updated Cart:", cartItems);
+    
 
     // Send data to the backend
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("No token found, please log in");
       toast.error("No token found");
       return;
     }
@@ -83,11 +86,9 @@ const ShopContextProvider = (props) => {
         );
         console.log("Add to Cart Response:", response);
       } catch (error) {
-        console.log("Error adding to cart:", error.response || error.message);
         toast.error(error.response?.data?.message || "Failed to add to cart");
       }
     } else {
-      console.log("No token found");
       toast.error("Please log in to add items to the cart");
     }
   };
@@ -111,6 +112,32 @@ const ShopContextProvider = (props) => {
   };
 
   const updateQuantity = async (itemId, size, quantity) => {
+
+    if (quantity <= 0) {
+      // If the quantity is 0, remove the item from cart
+      const updatedCart = { ...cartItems };
+      delete updatedCart[itemId][size];
+      if (Object.keys(updatedCart[itemId]).length === 0) {
+        delete updatedCart[itemId]; // Remove item entirely if no sizes left
+      }
+      setCartItems(updatedCart);
+      localStorage.setItem("cartItems", JSON.stringify(updatedCart));
+  
+      if (token) {
+        try {
+          await axios.post(
+            backendUrl + "/api/cart/update",
+            { itemId, size, quantity: 0 },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          toast.success("Item removed from cart");
+        } catch (error) {
+          console.log("Error updating cart:", error.response || error.message);
+          toast.error("Failed to remove item from cart");
+        }
+      }
+      return; // Exit function after item removal
+    }
 
     if (quantity <= 0) {
       toast.error("Quantity must be greater than 0");
@@ -171,10 +198,9 @@ const ShopContextProvider = (props) => {
           }
         }
       }
-      console.log(newOrderItems);
     }
     setOrderItems(newOrderItems); // assuming you have setOrderItems in your context
-    setCartItems({}); // Optionally clear the cart after placing the order
+    
   };
 
   const getCartAmount = () => {
@@ -217,21 +243,21 @@ const ShopContextProvider = (props) => {
         return;
       }
 
-      const response = await axios.get(backendUrl + "/api/cart/get", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // const response = await axios.get(backendUrl + "/api/cart/get", {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
   
-      if (response.status === 200) {
-        // Check if the response is valid JSON
-        if (response.data && response.data.success) {
-          setCartItems(response.data.cartItems);  // Update cart items
-        } else {
-          toast.error("Failed to fetch cart data: " + response.data.message || "Unknown error");
-        }
-      } else {
-        console.error('Error: Unexpected response status:', response.status);
-        toast.error("Failed to fetch cart data: " + response.statusText);
-      }
+      // if (response.status === 200) {
+      //   // Check if the response is valid JSON
+      //   if (response.data && response.data.success) {
+      //     setCartItems(response.data.cartItems);  // Update cart items
+      //   } else {
+      //     toast.error("Failed to fetch cart data: " + response.data.message || "Unknown error");
+      //   }
+      // } else {
+      //   console.error('Error: Unexpected response status:', response.status);
+      //   toast.error("Failed to fetch cart data: " + response.statusText);
+      // }
     } catch (error) {
       console.error("Error fetching cart data:", error); // Log the entire error object for detailed analysis
 
@@ -283,7 +309,7 @@ const ShopContextProvider = (props) => {
         if (error.response.status === 401) {
           toast.error("Unauthorized. Please log in again.");
         } else if (error.response.status === 404) {
-          toast.info("No orders found.");
+          // toast.info("No orders found.");
         } else {
           toast.error(error.response?.data?.message || 'An error occurred while fetching orders.');
         }
@@ -294,9 +320,9 @@ const ShopContextProvider = (props) => {
     }
   };
   
-  useEffect(() => {
-    console.log("Fetched Order Items:", orderItems);  // Inspect the order items data
-  }, [orderItems]);
+  // useEffect(() => {
+  //   console.log("Fetched Order Items:", orderItems);  // Inspect the order items data
+  // }, [orderItems]);
 
   useEffect(() => {
     if (token) {
