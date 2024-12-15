@@ -1,10 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import axios from 'axios';
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
+import PaystackPop from '@paystack/inline-js';
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
@@ -37,6 +38,111 @@ const PlaceOrder = () => {
 
     setFormData((data) => ({ ...data, [name]: value }));
   };
+
+  const [isPaystackLoaded, setIsPaystackLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadPaystackScript = () => {
+      if (typeof window.PaystackPop === "undefined") {
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v2/inline.js';  // Ensure this is the latest URL
+        script.async = true;
+        script.onload = () => {
+          console.log('Paystack SDK script loaded.');
+          if (typeof window.PaystackPop !== "undefined") {
+            setIsPaystackLoaded(true);
+            console.log("Paystack SDK loaded successfully");
+          } else {
+            console.error("Paystack SDK initialization failed: window.Paystack is undefined.");
+          }
+        };
+        script.onerror = () => {
+          console.error("Failed to load Paystack SDK.");
+        };
+        document.head.appendChild(script);
+      } else {
+        setIsPaystackLoaded(true);
+        console.log("Paystack SDK was already loaded.");
+      }
+    };
+    loadPaystackScript();
+  }, []);
+  
+
+  const initPay = (order) => {
+    console.log("isPaystackLoaded:", isPaystackLoaded);  // Log the state of isPaystackLoaded
+    console.log("window.Paystack:", window.PaystackPop);  // Log window.Paystack
+    
+      // Ensure Paystack SDK is loaded and available
+    if (!isPaystackLoaded || typeof window.PaystackPop === "undefined") {
+      console.error("Paystack SDK is not loaded yet.");
+      toast.error("Paystack payment service is unavailable.");
+      return; // Don't proceed if Paystack SDK isn't loaded
+    }
+
+    if (isPaystackLoaded && window.PaystackPop) {
+      // Now it's safe to use Paystack SDK
+      console.log("Paystack Order:", order);
+  
+      const paystack = new window.PaystackPop();
+      paystack.newTransaction({
+        key: import.meta.env.VITE_PAYSTACK_KEY_ID,
+        amount: order.amount * 100, // Paystack expects the amount in kobo
+        currency: order.currency,
+        name: 'Order Payment',
+        description: 'Order Payment',
+        reference: order.reference, // Reference from the backend
+        email: order.email, // User's email
+  
+        // Callback on successful payment
+        onSuccess: (transaction) => { 
+          console.log("Payment Successful:", transaction);
+          const { reference } = transaction;
+          verifyPayment(reference);
+        },
+  
+        // Callback when the user cancels the payment
+        onCancel: () => {
+          console.log("Payment was cancelled by the user.");
+          toast.error("Payment was cancelled");
+        }
+      });
+  
+      // Open the Paystack pop-up
+      setTimeout(() => {
+        paystack.open();
+      }, 500); // Add a small delay before executing the payment logic
+    } else {
+      console.error("Paystack SDK not loaded");
+      toast.error("Paystack payment service is unavailable at the moment.");
+    }
+  };
+  
+  // Payment verification function after successful transaction
+  const verifyPayment = async (reference) => {
+    try {
+      const verificationResponse = await axios.post(
+        backendUrl + '/api/order/verifyPaystack',
+        { reference },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (verificationResponse.data.success) {
+        toast.success('Payment Successful');
+        // Clear cart if payment successful
+        console.log("Clearing cart items...");
+        setCartItems({});
+        navigate('/order'); // Redirect user after payment success
+      } else {
+        console.log("Payment failed, navigating back to cart...");
+        toast.error('Payment Failed');
+        navigate('/cart');
+      }
+    } catch (error) {
+      toast.error('Error during payment verification');
+    }
+  };
+  
+
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
@@ -104,6 +210,32 @@ const PlaceOrder = () => {
         }
       
         break;
+
+        case 'paystack':{
+      
+          console.log("Paystack method selected"); // Verify this is being called
+          // Ensure you're making the correct API call to the backend
+          try {
+            const responsePaystack = await axios.post(backendUrl + '/api/order/paystack', orderData, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+            console.log('Paystack Order Response:', responsePaystack.data);
+            
+            if (responsePaystack.data.success) {
+              initPay(responsePaystack.data.order);
+              
+            } else {
+              console.error('Error placing order:', responsePaystack.data.message);
+              toast.error(responsePaystack.data.message);
+            }
+          } catch (error) {
+            console.error('Error placing order:', error);
+            toast.error('Error with Paystack payment');
+          }
+          
+        }
+
+        break;
       
         // other cases
         default:
@@ -115,10 +247,6 @@ const PlaceOrder = () => {
     }
   };
 
-  // const handleCheckout = () => {
-  //   placeOrder(); // Call the function to place the order
-  //   navigate('/order'); // Then navigate to the order page
-  // };
 
   return (
     <form
@@ -241,15 +369,15 @@ const PlaceOrder = () => {
               <img className="h-5 mx-4" src={assets.stripe_logo} alt="" />
             </div>
             <div
-              onClick={() => setMethod("razorpay")}
+              onClick={() => setMethod("paystack")}
               className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
             >
               <p
                 className={`min-w-3.5 h-3.5 border rounded-full ${
-                  method === "razorpay" ? "bg-green-400" : ""
+                  method === "paystack" ? "bg-green-400" : ""
                 }`}
               ></p>
-              <img className="h-5 mx-4" src={assets.razorpay_logo} alt="" />
+              <img className="h-5 mx-4" src={assets.Paystack_Logo} alt="" />
             </div>
             <div
               onClick={() => setMethod("cod")}

@@ -17,6 +17,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import AOS from "aos";
 import "aos/dist/aos.css";
 import Verify from './pages/Verify'
+// import VerifyPaystack from './pages/VerifyPaystack'
 
 const App = () => {
   React.useEffect(() => {
@@ -44,6 +45,7 @@ const App = () => {
         <Route path='/place-order' element={<PlaceOrder/>} />
         <Route path='/order' element={<Order/>} />
         <Route path='/verify' element={<Verify/>} />
+        {/* <Route path='/verifypaystack' element={<VerifyPaystack/>} /> */}
       </Routes>
       <Footer/>
     </div>

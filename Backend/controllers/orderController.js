@@ -1,17 +1,25 @@
 import dotenv from 'dotenv';
 dotenv.config();  // Load environment variables from .env
-
+import axios from 'axios';
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from 'stripe';
+import Paystack from 'paystack';
 
 // global variables
-const currency = 'usd'
+const currency = 'USD'
 const deliveryCharge = 10
 
 // gateway initialize
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// const paystackInstance = new Paystack({
+//   key_id : process.env.PAYSTACK_KEY_ID,
+//   key_secret : process.env.PAYSTACK_KEY_SECRET
+// })
+
+// Correct initialization
+const paystackInstance = Paystack(process.env.PAYSTACK_KEY_SECRET); // Secret key used for server-side requests
 
 // Placing orders using COD Method
 const placeOrder = async (req,res) => {
@@ -192,9 +200,116 @@ const verifyStripe = async (req,res) => {
 }
 
 // Placing orders using Razorpay Method
-const placeOrderRazorpay = async (req,res) => {
-  
+const placeOrderPaystack = async (req,res) => {
+  try {
+    
+    const userId = req.user.id;
+    const { items, address, amount } = req.body;
+
+    console.log("User ID from Auth Middleware:", userId);
+    console.log("Received Order Details:", { items, address, amount });
+    
+     // Ensure the required fields are present
+     if (!userId || !items || !address || !amount) {
+      console.log("Missing required fields in the request.");
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    // Fetch the authenticated user's email from the database
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      console.log("User not found for ID:", userId);
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const userEmail = user.email; // Use the user's email for the Paystack request
+
+    const orderData = {
+      userId,
+      items,
+      address,
+      amount,
+      paymentMethod: 'paystack',
+      payment: false,
+      date: Date.now(),
+    };
+
+    const newOrder = new orderModel(orderData);
+    const savedOrder = await newOrder.save();
+
+     // Log the saved order and its ID
+     console.log("Saved Order to DB:", savedOrder);  // This will show the full order data including orderId
+     console.log("Order ID for Paystack:", savedOrder._id);  // This logs the orderId
+
+    const options = {
+      amount: amount * 100,
+      currency: 'NGN',
+      reference : savedOrder._id.toString(),
+      email: userEmail, // Add the user's email here
+    }
+
+    console.log("Paystack Options Sent:", options);
+    console.log('Initializing Paystack payment...');
+
+    paystackInstance.transaction.initialize(options, (error,order)=> {
+      console.log('Callback reached');
+      if (error) {
+        console.log('Error initializing Paystack transaction:', error);
+        return res.status(500).json({success:false, message: error})
+      }
+       // Log the order object for debugging
+        console.log('Paystack Order:', order);
+
+        if (order.status === true) {
+          // Return the order details to the frontend if successful
+          res.json({
+            success: true,
+            order: {
+              amount: savedOrder.amount,
+              reference: savedOrder._id.toString(),
+              email: userEmail,
+              currency: 'NGN',
+            },
+          });
+        } else {
+          console.log('Paystack Order Failed:', order);
+          res.status(500).json({ success: false, message: 'Paystack initialization failed' });
+        }
+      
+    })
+
+  } catch (error) {
+    console.log(error)
+    res.json({
+      sucess:false, 
+      message:error.message,
+    })
+  }
 }
+
+const verifyPaystack = async (req, res) => {
+  const { reference } = req.body;
+
+
+  console.log("Received Paystack verification request for reference:", reference);
+
+  try {
+    const paymentDetails = await paystackInstance.transaction.verify(reference);
+    console.log("Paystack Payment Details:", paymentDetails);
+    if (paymentDetails.status === true) {
+      // Payment was successful, update the order status
+      await orderModel.findByIdAndUpdate(paymentDetails.data.reference, { payment: true });
+      res.json({ success: true, message: 'Payment successful' });
+    } else {
+      console.log('Payment failed with Paystack response:', paymentDetails);  // Add more details in the log
+      res.json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.log("Error verifying Paystack payment:",error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // All Orders data for Admin Panel
 const allOrders = async (req,res) => {
@@ -243,4 +358,4 @@ const updateStatus = async (req,res) => {
   }
 }
 
-export { verifyStripe ,placeOrder, placeOrderStripe, placeOrderRazorpay, allOrders, userOrders, updateStatus }
+export { verifyPaystack, verifyStripe ,placeOrder, placeOrderStripe, placeOrderPaystack, allOrders, userOrders, updateStatus }

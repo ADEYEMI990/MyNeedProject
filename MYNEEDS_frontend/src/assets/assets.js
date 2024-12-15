@@ -77,6 +77,7 @@ import opay_logo from './opay_logo.png'
 import palmpay_logo from './palmpay_logo.png'
 import hero_img1 from './hero_img1.png'
 import hero_img2 from './hero_img2.png'
+import Paystack_Logo from './Paystack_Logo.png'
 
 
 export const assets = {
@@ -101,7 +102,8 @@ export const assets = {
     stripe_logo,
     cross_icon,
     opay_logo,
-    palmpay_logo
+    palmpay_logo,
+    Paystack_Logo
 }
 
 export const products = [
