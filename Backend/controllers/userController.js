@@ -1,12 +1,165 @@
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { fileURLToPath } from 'url'; // Import this function to handle file URLs
+import path from 'path';  // Path module is still used to resolve file paths
+import fs from 'fs';
 import userModel from "../models/userModel.js";
 
 const createToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
+// Get user profile
+
+const getUserProfile = async (req, res) => {
+  try {
+    // Get the user ID from the JWT token (from the authenticated user)
+    const userId = req.user.id;
+    
+    // Fetch the user from the database using the userId
+    const user = await userModel.findById(userId);
+    
+    if (!user) {
+      // If the user doesn't exist, return an error response
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Send the user profile data as a response
+    return res.status(200).json({
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "Not Provided",  // Add the phone field
+        profileImage: user.profileImage || null,  // Add the profile image URL
+        cartData: user.cartData,
+        // Add any other fields you want to send in the profile response
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    
+    // If an error occurs, make sure only one response is sent
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  }
+};
+
+// Update user profile (name, email, password)
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const user = await userModel.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Check if email is changed and already taken
+    if (email && email !== user.email) {
+      const emailExists = await userModel.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ success: false, message: "Email is already in use" });
+      }
+    }
+
+    // Update user data
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;  // Update phone number if provided
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+    res.status(200).json({
+       success: true,
+       message: "Profile updated successfully",
+       user: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "Not Provided",  // Return the phone number or "Not Provided"
+        profileImage: user.profileImage || null,  // Return the profile image URL or null if not set
+        cartData: user.cartData
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Update user profile image
+const updateUserProfileImage = async (req, res) => {
+    try {
+      console.log('Received request to update profile image');
+
+      // Get the user ID from the JWT token (from the authenticated user)
+      const userId = req.user.id;
+      
+      // Fetch the user from the database using the userId
+      const user = await userModel.findById(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      // Check if a file was uploaded
+      if (req.file) {
+        // Generate the image URL
+        const imageUrl = `/uploads/profiles/${req.file.filename}`;
+
+        // Log to ensure image upload is being handled
+        console.log('Uploaded image: ', req.file);
+
+        // Remove the old profile image if it exists
+        if (user.profileImage) {
+          // Use import.meta.url to get the current directory in ES modules
+          const __filename = fileURLToPath(import.meta.url);
+          const __dirname = path.dirname(__filename);
+          
+          const oldImagePath = path.join(__dirname, '..', 'public', user.profileImage);
+          
+          // Log before trying to delete the old image
+          console.log('Attempting to delete old image:', oldImagePath);
+
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath); // Delete the old image
+            console.log('Old image deleted successfully');
+          } else {
+            console.log('Old image not found:', oldImagePath); // Log if old image does not exist
+          }
+        }
+
+        // Update the user's profile image URL in the database
+        user.profileImage = imageUrl;
+        await user.save();  // Save the updated user profile
+
+        console.log('Profile image updated in the database:', imageUrl);
+
+        // Return the updated profile image URL in the response
+        return res.status(200).json({
+           success: true, 
+           updatedProfileImage: imageUrl,
+           user: {
+            name: user.name,
+            email: user.email,
+            phone: user.phone || "Not Provided",  // Ensure phone field is included
+            profileImage: imageUrl  // Return the updated profile image URL
+          }
+        });
+      } else {
+        return res.status(400).json({ success: false, message: "No image file provided" });
+      }
+    } catch (error) {
+      console.error('Error updating profile image:', error);
+
+      // Send the error response
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
 // Route for user login
 
 const loginUser = async (req, res) => {
@@ -103,43 +256,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Route for admin login
-// const adminLogin = async (req, res) => {
-//   try {
-//     const {email,password} = req.body
-//     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-//       const token = jwt.sign(email+password,process.env.JWT_SECRET);
-//       res.json({success:true,token})
-//     } else {
-//       res.json({success:false,message:"Invalid credentials"})
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     res.json({ success: false, message: error.message });
-//   }
-// };
-
-// const adminLogin = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     // Validate input
-//     if (!email || !password) {
-//       return res.status(400).json({ success: false, message: "Email and password are required" });
-//     }
-
-//     // Check admin credentials
-//     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-//       const token = createToken('admin'); // Use a static identifier or ID
-//       return res.status(200).json({ success: true, token });
-//     } else {
-//       return res.status(401).json({ success: false, message: "Invalid credentials" });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({ success: false, message: error.message });
-//   }
-// };
 
 const adminLogin = async (req, res) => {
   try {
@@ -163,4 +279,4 @@ const adminLogin = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, adminLogin };
+export { loginUser, registerUser, adminLogin, getUserProfile, updateUserProfile, updateUserProfileImage };

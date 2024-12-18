@@ -1,74 +1,3 @@
-// import express from 'express'
-// import cors from 'cors'
-// import 'dotenv/config.js'
-
-// // App Config
-// const app = express();
-// const poer = process.env.PORT || 4000
-
-// // middlewares
-// app.arguments(express.json())
-// app.arguments(cors())
-
-// // api endpoints
-// rt express from 'express';
-
-// const app = express();
-
-// // Use express.json() middleware
-// app.use(express.json());
-
-// // Your other middleware and routes here
-
-// const PORT = process.env.PORT || 4000;
-// app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
-// });
-
-// import express from "express";
-// import dotenv from "dotenv";
-// import cors from "cors"; // Import the CORS packagenpm ru
-// import connectDB from "./config/mongodb.js";
-// import connectCloudinary from "./config/cloudinary.js";
-// import userRouter from "./routes/userRoute.js";
-// import productRouter from "./routes/productRoute.js";
-
-// dotenv.config(); // Load environment variables
-
-// const app = express();
-// connectDB();
-// connectCloudinary();
-
-// // Enable CORS
-// app.use(cors({
-//   origin: 'http://localhost:5174', // Allow requests from this origin
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Specify allowed methods
-//   credentials: true, // Allow credentials (optional)
-// }));
-
-// // middlewares
-// app.use(express.json());
-
-// // api endpoints
-// app.use("/api/user", userRouter);
-// app.use("/api/product", productRouter);
-
-// // Define a route for the root URL
-// app.get("/", (req, res) => {
-//   res.send("Welcome to my API!");
-// });
-
-// app.use((err, req, res, next) => {
-//   console.error(err.stack);
-//   res.status(500).json({ success: false, message: 'Internal Server Error' });
-// });
-
-// const PORT = process.env.PORT || 4000;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
-
-
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors"; 
@@ -83,12 +12,19 @@ import authUser from "./middleware/auth.js";
 import orderRouter from "./routes/orderRoute.js";
 import orderModel from "./models/orderModel.js";
 import mongoose from 'mongoose'
+import path from 'path';
+import { fileURLToPath } from 'url'; // Import this to handle __dirname in ES modules
+import fs from 'fs';
 
 dotenv.config();
 
 const app = express();
 connectDB();
 connectCloudinary();
+
+// Resolve __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Enable CORS
 const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
@@ -108,6 +44,39 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 app.use(morgan('dev')); // Log requests to the console
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// Function to check if the uploads directory is writable
+function checkUploadsDirectory(res) {
+  const uploadsDir = path.join(__dirname, '..', 'public', 'uploads', 'profiles');
+
+    // Check if the directory exists, if not, create it
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Uploads directory created:', uploadsDir);
+  } else {
+    console.log('Uploads directory already exists:', uploadsDir);
+  }
+
+  try {
+    fs.accessSync(uploadsDir, fs.constants.W_OK); // Check if directory is writable
+    console.log('Uploads directory is writable');
+  } catch (err) {
+    console.error('Permission error: Unable to write to uploads directory');
+    // Send response if permission error
+    res.status(500).json({ success: false, message: 'Permission error: Unable to write to uploads directory' });
+    return false;  // Return false to indicate failure
+  }
+  return true;  // Directory is writable
+}
+
+// Call the function in your route or application setup
+app.use((req, res, next) => {
+  if (!checkUploadsDirectory(res)) {
+    return;  // Stop the request flow if there's a directory permission error
+  }
+  next();  // Continue processing if directory is writable
+});
 
 // API endpoints
 app.use("/api/user", userRouter);
@@ -131,40 +100,6 @@ app.get("/api/cart/get",authUser, async (req, res) => {
     res.status(500).json({ message: "Error fetching cart items" });
   }
 });
-
-// app.post("/api/cart/add", authUser, async (req, res) => {
-//   try {
-//     const { itemId, size } = req.body;
-//     const userId = req.user.id;  // Get userId from authenticated user
-
-//     if (!itemId || !size) {
-//       return res.status(400).json({ message: "ItemId and Size are required" });
-//     }
-
-//     const user = await userModel.findById(userId);
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     // Proceed with adding item to cart
-//     const cartData = user.cartData || {};
-//     if (!cartData[itemId]) {
-//       cartData[itemId] = {};
-//     }
-//     if (!cartData[itemId][size]) {
-//       cartData[itemId][size] = 0;
-//     }
-//     cartData[itemId][size] += 1; // Increment the cart count for the specific item/size
-
-//     user.cartData = cartData;  // Save the updated cartData
-//     await user.save();
-
-//     res.status(200).json({ success: true, message: "Item added to cart", cartData });
-//   } catch (error) {
-//     console.error("Error adding to cart:", error);
-//     res.status(500).json({ success: false, message: "Error adding to cart" });
-//   }
-// });
 
 app.post('/api/order/place', authUser, async (req, res) => {
   try {
@@ -201,73 +136,6 @@ app.post('/api/order/place', authUser, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error placing order' });
   }
 });
-
-// app.get('/api/order/user', authUser, async (req, res) => {
-//   try {
-//     const userId = req.user.id;  // Assuming you have decoded the token and attached user info
-//     console.log("Fetching orders for user:", userId);
-//     const orders = await orderModel.find({ userId: userId });
-//     console.log("Found orders:", orders);
-
-//     if (orders.length === 0) {
-//       return res.status(404).json({ success: false, message: 'No orders found' });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       orders: orders
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ success: false, message: 'Failed to fetch orders' });
-//   }
-// });
-
-
-// Global error handling
-
-// app.get('/api/order/user', authUser, async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     console.log("Fetching orders for user:", userId);
-
-//     // Fetch orders for the user and populate the items with product details
-//     const orders = await orderModel.aggregate([
-//       { $match: { userId: mongoose.Types.ObjectId(userId) } },
-//       {
-//         $lookup: {
-//           from: 'products',  // Assuming your product collection is named 'products'
-//           localField: 'items.itemId',  // The field in orders that refers to product IDs
-//           foreignField: '_id',  // The field in the product collection that holds the product ID
-//           as: 'orderDetails'  // Alias for the product data in the result
-//         }
-//       },
-//       {
-//         $unwind: '$orderDetails'  // Flatten the product details into the order document
-//       }
-//     ]);
-
-//     console.log("Found orders:", orders);
-
-//     if (orders.length === 0) {
-//       return res.status(404).json({ success: false, message: 'No orders found' });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       orders: orders.map(order => ({
-//         ...order,
-//         items: order.items.map(item => ({
-//           ...item,
-//           product: item.orderDetails  // Attach product details to each item
-//         }))
-//       }))
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ success: false, message: 'Failed to fetch orders' });
-//   }
-// });
 
 app.get('/api/order/user', authUser, async (req, res) => {
   try {
