@@ -48,21 +48,21 @@ const PlaceOrder = () => {
         script.src = 'https://js.paystack.co/v2/inline.js';  // Ensure this is the latest URL
         script.async = true;
         script.onload = () => {
-          console.log('Paystack SDK script loaded.');
+          // console.log('Paystack SDK script loaded.');
           if (typeof window.PaystackPop !== "undefined") {
             setIsPaystackLoaded(true);
-            console.log("Paystack SDK loaded successfully");
+            // console.log("Paystack SDK loaded successfully");
           } else {
-            console.error("Paystack SDK initialization failed: window.Paystack is undefined.");
+            // console.error("Paystack SDK initialization failed: window.Paystack is undefined.");
           }
         };
         script.onerror = () => {
-          console.error("Failed to load Paystack SDK.");
+          // console.error("Failed to load Paystack SDK.");
         };
         document.head.appendChild(script);
       } else {
         setIsPaystackLoaded(true);
-        console.log("Paystack SDK was already loaded.");
+        // console.log("Paystack SDK was already loaded.");
       }
     };
     loadPaystackScript();
@@ -70,19 +70,19 @@ const PlaceOrder = () => {
   
 
   const initPay = (order) => {
-    console.log("isPaystackLoaded:", isPaystackLoaded);  // Log the state of isPaystackLoaded
-    console.log("window.Paystack:", window.PaystackPop);  // Log window.Paystack
+    // console.log("isPaystackLoaded:", isPaystackLoaded);  // Log the state of isPaystackLoaded
+    // console.log("window.Paystack:", window.PaystackPop);  // Log window.Paystack
     
       // Ensure Paystack SDK is loaded and available
     if (!isPaystackLoaded || typeof window.PaystackPop === "undefined") {
-      console.error("Paystack SDK is not loaded yet.");
+      // console.error("Paystack SDK is not loaded yet.");
       toast.error("Paystack payment service is unavailable.");
       return; // Don't proceed if Paystack SDK isn't loaded
     }
 
     if (isPaystackLoaded && window.PaystackPop) {
       // Now it's safe to use Paystack SDK
-      console.log("Paystack Order:", order);
+      // console.log("Paystack Order:", order);
   
       const paystack = new window.PaystackPop();
       paystack.newTransaction({
@@ -96,14 +96,15 @@ const PlaceOrder = () => {
   
         // Callback on successful payment
         onSuccess: (transaction) => { 
-          console.log("Payment Successful:", transaction);
+          // console.log("Payment Successful:", transaction);
+          // toast.success("payment successful")
           const { reference } = transaction;
           verifyPayment(reference);
         },
   
         // Callback when the user cancels the payment
         onCancel: () => {
-          console.log("Payment was cancelled by the user.");
+          // console.log("Payment was cancelled by the user.");
           toast.error("Payment was cancelled");
         }
       });
@@ -113,7 +114,7 @@ const PlaceOrder = () => {
         paystack.open();
       }, 500); // Add a small delay before executing the payment logic
     } else {
-      console.error("Paystack SDK not loaded");
+      // console.error("Paystack SDK not loaded");
       toast.error("Paystack payment service is unavailable at the moment.");
     }
   };
@@ -129,11 +130,11 @@ const PlaceOrder = () => {
       if (verificationResponse.data.success) {
         toast.success('Payment Successful');
         // Clear cart if payment successful
-        console.log("Clearing cart items...");
+        // console.log("Clearing cart items...");
         setCartItems({});
         navigate('/order'); // Redirect user after payment success
       } else {
-        console.log("Payment failed, navigating back to cart...");
+        // console.log("Payment failed, navigating back to cart...");
         toast.error('Payment Failed');
         navigate('/cart');
       }
@@ -149,8 +150,8 @@ const PlaceOrder = () => {
     try {
       let orderItems = [];
       
-      console.log('Cart Amount:', getCartAmount());
-      console.log('Delivery Fee:', delivery_fee);
+      // console.log('Cart Amount:', getCartAmount());
+      // console.log('Delivery Fee:', delivery_fee);
 
       // Iterate over cartItems
       for (const itemId in cartItems) {
@@ -181,7 +182,7 @@ const PlaceOrder = () => {
         paymentMethod: method, // Add paymentMethod field here
       }
 
-      console.log('Order Data:', orderData);
+      // console.log('Order Data:', orderData);
 
       switch (method) {
         case 'cod': {
@@ -213,23 +214,23 @@ const PlaceOrder = () => {
 
         case 'paystack':{
       
-          console.log("Paystack method selected"); // Verify this is being called
+          // console.log("Paystack method selected"); // Verify this is being called
           // Ensure you're making the correct API call to the backend
           try {
             const responsePaystack = await axios.post(backendUrl + '/api/order/paystack', orderData, {
             headers: { Authorization: `Bearer ${token}` }
           });
-            console.log('Paystack Order Response:', responsePaystack.data);
+            // console.log('Paystack Order Response:', responsePaystack.data);
             
             if (responsePaystack.data.success) {
               initPay(responsePaystack.data.order);
               
             } else {
-              console.error('Error placing order:', responsePaystack.data.message);
+              // console.error('Error placing order:', responsePaystack.data.message);
               toast.error(responsePaystack.data.message);
             }
           } catch (error) {
-            console.error('Error placing order:', error);
+            // console.error('Error placing order:', error);
             toast.error('Error with Paystack payment');
           }
           
@@ -243,7 +244,8 @@ const PlaceOrder = () => {
       }
   
     } catch (error) {
-      console.error('Error placing order:', error);
+      toast.error('kindly login or create account');
+      // console.error('Error placing order:', error);
     }
   };
 

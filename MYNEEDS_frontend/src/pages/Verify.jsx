@@ -134,7 +134,7 @@ const Verify = () => {
         return null;
       }
 
-      console.log("Verifying payment with:", { success, orderId });
+      // console.log("Verifying payment with:", { success, orderId });
 
       const response = await axios.post(
         backendUrl + '/api/order/verifyStripe',
@@ -144,33 +144,33 @@ const Verify = () => {
         }
       );
 
-      console.log("Backend response:", response.data);
-      console.log("Payment success status:", response.data.success);
+      // console.log("Backend response:", response.data);
+      // console.log("Payment success status:", response.data.success);
 
       if (response.data.success) {
         // Clear cart if payment successful
-        console.log("Clearing cart items...");
+        // console.log("Clearing cart items...");
         setCartItems({});
         localStorage.removeItem('cartItems'); // Optional: clear cart from localStorage if payment is successful
 
         setTimeout(async () => {
-          console.log("Navigating to order page...");
+          // console.log("Navigating to order page...");
           await navigate('/order');
         }, 100);
       } else {
-        console.log("Payment failed, navigating back to cart...");
+        // console.log("Payment failed, navigating back to cart...");
         setTimeout(async () => {
           // On failure, attempt to recover cart data from localStorage
           const savedCart = JSON.parse(localStorage.getItem('cartItems') || '{}');
           if (savedCart && Object.keys(savedCart).length > 0) {
-            console.log("Recovered cart items from localStorage:", savedCart);
+            // console.log("Recovered cart items from localStorage:", savedCart);
             setCartItems(savedCart); // Recover cart items from localStorage
           }
           await navigate('/cart');
         }, 100);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       toast.error(error.message);
     }
   };

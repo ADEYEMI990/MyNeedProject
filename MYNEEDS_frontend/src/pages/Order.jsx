@@ -11,7 +11,7 @@ const Order = () => {
   useEffect(() => {
     // If there are no order items, we can trigger an action to show a loading state or error message
     if (orderItems.length === 0) {
-      console.log("No orders found or error fetching orders.");
+      // console.log("No orders found or error fetching orders.");
     }
   }, [orderItems]);
 
@@ -65,7 +65,7 @@ const Order = () => {
               {order.items.map((item, itemIndex) => {
                 // Convert the timestamp to readable date format
                 const itemDate = convertTimestampToDate(order.date);
-                console.log("Item data:", item); // Log the item to confirm structure
+                // console.log("Item data:", item); // Log the item to confirm structure
                 return (
                   <div
                     key={itemIndex}

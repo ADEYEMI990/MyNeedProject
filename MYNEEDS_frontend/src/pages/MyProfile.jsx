@@ -12,6 +12,7 @@ const MyProfile = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState(''); // Default to existing phone or empty string
 
   useEffect(() => {
     if (token) {
@@ -21,10 +22,14 @@ const MyProfile = () => {
           const response = await axios.get(`${backendUrl}/api/user/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
+
+          console.log('response', response);
+          
           if (response.data.success) {
             setUserDetails(response.data.user);
             setName(response.data.user.name);
             setEmail(response.data.user.email);
+            setPhone(response.data.user.phone);
 
             // Append timestamp for cache-busting
           if (response.data.user.profileImage) {
@@ -36,7 +41,7 @@ const MyProfile = () => {
           } else {
             toast.error("Failed to fetch user details.");
           }
-        } catch (error) {
+        } catch {
           toast.error("Error fetching user details.");
         }
       };
@@ -58,24 +63,10 @@ const MyProfile = () => {
     e.preventDefault();
 
     // Update profile details (name, email, and password)
-    const updatedDetails = { name, email, password: password || undefined };
+    const updatedDetails = { name, email, password: password || undefined,phone };
 
-    try {
-      const response = await axios.put(
-        `${backendUrl}/api/user/updateProfile`,
-        updatedDetails,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.success) {
-        toast.success("Profile updated successfully!");
-        setUserDetails(response.data.user); // Update the user details in the state
-        setEditMode(false); // Exit edit mode
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error) {
-      toast.error("Error updating profile.");
-    }
+    // Log the details you're sending to the server
+    console.log('Updated profile details:', updatedDetails);
 
     // If there's a new image, update the profile image as well
     if (image) {
@@ -101,9 +92,35 @@ const MyProfile = () => {
           toast.error("Failed to update profile image.");
         }
       } catch (error) {
+        console.error("Error updating profile image:", error);  // Log any errors in the image update
         toast.error("Error updating profile image.");
       }
     }
+
+    try {
+      console.log("Sending request to update profile...");
+
+      const response = await axios.put(
+        `${backendUrl}/api/user/updateProfile`,
+        updatedDetails,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log('response', response);
+      
+
+      if (response.data.success) {
+        toast.success("Profile updated successfully!");
+        setUserDetails(response.data.user); // Update the user details in the state
+        setEditMode(false); // Exit edit mode
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error in PUT request:", error);
+      toast.error("Error updating profile.");
+    }
+
   };
 
   return (
@@ -116,7 +133,8 @@ const MyProfile = () => {
         <div className="mb-8 flex flex-col items-center">
         {userDetails && userDetails.profileImage ? (
           <img
-            src={`${backendUrl}${userDetails.profileImage}`}
+            // src={`${backendUrl}${userDetails.profileImage}`}
+            src={userDetails.profileImage}
             alt="Profile"
             className="w-36 h-36 rounded-full object-cover"
           />
@@ -171,6 +189,14 @@ const MyProfile = () => {
                 className="w-full px-3 py-2 border border-gray-800 mb-4"
                 placeholder="Password (Leave blank to keep the same)"
               />
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-800 mb-4"
+                placeholder="Phone Number (Optional)"
+              />
+
             </>
           )}
 

@@ -20,7 +20,7 @@ const ShopContextProvider = (props) => {
       return savedCart ? JSON.parse(savedCart) : {};
     } catch (error) {
       // If an error occurs (invalid JSON), log the error and return an empty object
-      console.error("Error parsing cartItems from localStorage:", error);
+      // console.error("Error parsing cartItems from localStorage:", error);
       return {}; // Fallback to an empty object
     }
   });
@@ -49,7 +49,7 @@ const ShopContextProvider = (props) => {
 
     let cartData = structuredClone(cartItems);
 
-    console.log("Current Cart:", cartData);
+    // console.log("Current Cart:", cartData);
 
     if (cartData[itemId]) {
       if (cartData[itemId][size]) {
@@ -68,23 +68,24 @@ const ShopContextProvider = (props) => {
     
 
     // Send data to the backend
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("No token found");
-      return;
-    }
+    // const token = localStorage.getItem("token");
+    // if (!token) {
+    //   toast.error('kindly login or create account');
+    //   return;
+    // }
 
     
 
     if (token) {
-      console.log("Sending Token:", token); // Log the token to ensure it's not null or undefined
+      // console.log("Sending Token:", token); // Log the token to ensure it's not null or undefined
       try {
-        const response = await axios.post(
+        await axios.post(
           backendUrl + "/api/cart/add",
           { itemId, size},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        console.log("Add to Cart Response:", response);
+        toast.success("Item added to cart");
+        
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to add to cart");
       }
@@ -132,7 +133,7 @@ const ShopContextProvider = (props) => {
           );
           toast.success("Item removed from cart");
         } catch (error) {
-          console.log("Error updating cart:", error.response || error.message);
+          // console.log("Error updating cart:", error.response || error.message);
           toast.error("Failed to remove item from cart");
         }
       }
@@ -169,7 +170,7 @@ const ShopContextProvider = (props) => {
         });
 
       } catch (error) {
-        console.log("Error adding to cart:", error.response || error.message);
+        // console.log("Error adding to cart:", error.response || error.message);
         toast.error(error.response?.data?.message || "Failed to add to cart");
       }
     }
@@ -231,7 +232,7 @@ const ShopContextProvider = (props) => {
         toast.error(response.data.message); // Show error if no success flag
       }
     } catch (error) {
-      console.error(error); // Log the error
+      // console.error(error); // Log the error
       toast.error("error.message"); // Notify user of error
     }
   };
@@ -239,7 +240,7 @@ const ShopContextProvider = (props) => {
   const getUserCart = async (token) => {
     try {
       if (!token) {
-        toast.error("No token found. Please log in to view your cart.");
+        // toast.error("No token found. Please log in to view your cart.");
         return;
       }
 
@@ -259,27 +260,27 @@ const ShopContextProvider = (props) => {
       //   toast.error("Failed to fetch cart data: " + response.statusText);
       // }
     } catch (error) {
-      console.error("Error fetching cart data:", error); // Log the entire error object for detailed analysis
+      // console.error("Error fetching cart data:", error); // Log the entire error object for detailed analysis
 
     // Check if it's an Axios error
     if (axios.isAxiosError(error)) {
       // Log Axios error details (response, status, etc.)
       if (error.response) {
         // The request was made, and the server responded with a status code
-        console.error("Response Error:", error.response);
+        // console.error("Response Error:", error.response);
         toast.error(`Error: ${error.response.status} - ${error.response.data.message || 'Unknown error'}`);
       } else if (error.request) {
         // The request was made, but no response was received
-        console.error("Request Error:", error.request);
+        // console.error("Request Error:", error.request);
         toast.error("No response received from the server.");
       } else {
         // Something else happened in setting up the request
-        console.error("Setup Error:", error.message);
+        // console.error("Setup Error:", error.message);
         toast.error("Error in setting up the request.");
       }
     } else {
       // If it's not an Axios error, log the general error message
-      console.error("General Error:", error);
+      // console.error("General Error:", error);
       toast.error("An unknown error occurred while fetching cart data.");
     }
   } finally {
@@ -292,7 +293,7 @@ const ShopContextProvider = (props) => {
       const response = await axios.get(backendUrl + "/api/order/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Orders Response:', response.data); // Log response
+      // console.log('Orders Response:', response.data); // Log response
       if (response.data.success && Array.isArray(response.data.orders)) {
         if (response.data.orders.length > 0) {
           setOrderItems(response.data.orders); // Set orders if found
@@ -307,7 +308,7 @@ const ShopContextProvider = (props) => {
     } catch (error) {
       if (error.response) {
         if (error.response.status === 401) {
-          toast.error("Unauthorized. Please log in again.");
+          // toast.error("Unauthorized. Please log in again.");
         } else if (error.response.status === 404) {
           // toast.info("No orders found.");
         } else {
@@ -349,7 +350,7 @@ const ShopContextProvider = (props) => {
           setCartItems(response.data.cartItems);
         })
         .catch((error) => {
-          console.error("Error fetching cart:", error);
+          // console.error("Error fetching cart:", error);
           toast.error("Failed to fetch cart");
         });
     }
