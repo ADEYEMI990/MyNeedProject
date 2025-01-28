@@ -203,9 +203,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal Server Error' });
 });
 
-const PORT = process.env.PORT || 4000;
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const port = process.env.PORT || 4000;
+const server = app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 // Graceful shutdown
