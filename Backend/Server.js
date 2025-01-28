@@ -44,39 +44,39 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 app.use(morgan('dev')); // Log requests to the console
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Function to check if the uploads directory is writable
-function checkUploadsDirectory(res) {
-  const uploadsDir = path.join(__dirname, '..', 'public', 'uploads', 'profiles');
+// function checkUploadsDirectory(res) {
+//   const uploadsDir = path.join(__dirname, '..', 'public', 'uploads', 'profiles');
 
-    // Check if the directory exists, if not, create it
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('Uploads directory created:', uploadsDir);
-  } else {
-    console.log('Uploads directory already exists:', uploadsDir);
-  }
+//     // Check if the directory exists, if not, create it
+//   if (!fs.existsSync(uploadsDir)) {
+//     fs.mkdirSync(uploadsDir, { recursive: true });
+//     console.log('Uploads directory created:', uploadsDir);
+//   } else {
+//     console.log('Uploads directory already exists:', uploadsDir);
+//   }
 
-  try {
-    fs.accessSync(uploadsDir, fs.constants.W_OK); // Check if directory is writable
-    console.log('Uploads directory is writable');
-  } catch (err) {
-    console.error('Permission error: Unable to write to uploads directory');
-    // Send response if permission error
-    res.status(500).json({ success: false, message: 'Permission error: Unable to write to uploads directory' });
-    return false;  // Return false to indicate failure
-  }
-  return true;  // Directory is writable
-}
+//   try {
+//     fs.accessSync(uploadsDir, fs.constants.W_OK); // Check if directory is writable
+//     console.log('Uploads directory is writable');
+//   } catch (err) {
+//     console.error('Permission error: Unable to write to uploads directory');
+//     // Send response if permission error
+//     res.status(500).json({ success: false, message: 'Permission error: Unable to write to uploads directory' });
+//     return false;  // Return false to indicate failure
+//   }
+//   return true;  // Directory is writable
+// }
 
 // Call the function in your route or application setup
-app.use((req, res, next) => {
-  if (!checkUploadsDirectory(res)) {
-    return;  // Stop the request flow if there's a directory permission error
-  }
-  next();  // Continue processing if directory is writable
-});
+// app.use((req, res, next) => {
+//   if (!checkUploadsDirectory(res)) {
+//     return;  // Stop the request flow if there's a directory permission error
+//   }
+//   next();  // Continue processing if directory is writable
+// });
 
 // API endpoints
 app.use("/api/user", userRouter);
