@@ -66,7 +66,7 @@ const MyProfile = () => {
     const updatedDetails = { name, email, password: password || undefined,phone };
 
     // Log the details you're sending to the server
-    console.log('Updated profile details:', updatedDetails);
+    // console.log('Updated profile details:', updatedDetails);
 
     // If there's a new image, update the profile image as well
     if (image) {
@@ -98,7 +98,7 @@ const MyProfile = () => {
     }
 
     try {
-      console.log("Sending request to update profile...");
+      // console.log("Sending request to update profile...");
 
       const response = await axios.put(
         `${backendUrl}/api/user/updateProfile`,
@@ -106,7 +106,7 @@ const MyProfile = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log('response', response);
+      // console.log('response', response);
       
 
       if (response.data.success) {
