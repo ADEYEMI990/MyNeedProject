@@ -44,6 +44,11 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 app.use(morgan('dev')); // Log requests to the console
+// Serve static files like favicon.ico
+app.use(express.static(path.join(__dirname, 'public'))); // Adjust this path if you have your favicon there
+
+// Handle missing favicon.ico requests (optional)
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 // app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Function to check if the uploads directory is writable
@@ -84,7 +89,10 @@ app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use('/api/order', orderRouter);
 
-
+// Root route handler (optional, to prevent 404 on "/")
+app.get('/', (req, res) => {
+  res.send('API is running!');
+});
 
 app.get("/api/cart/get",authUser, async (req, res) => {
   try {
