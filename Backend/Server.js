@@ -45,7 +45,7 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan('dev')); // Log requests to the console
 // Serve static files like favicon.ico
-app.use(express.static(path.join(__dirname, 'public'))); // Adjust this path if you have your favicon there
+// app.use(express.static(path.join(__dirname, 'public'))); // Adjust this path if you have your favicon there
 
 // Handle missing favicon.ico requests (optional)
 app.get('/favicon.ico', (req, res) => res.status(204).end());
