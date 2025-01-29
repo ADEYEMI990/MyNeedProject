@@ -27,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Enable CORS
-const allowedOrigins = ['https://myneed-frontend.vercel.app', 'http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = ['https://myneed-frontend.vercel.app','https://myneed-admin.vercel.app', 'http://localhost:5173', 'http://localhost:5174'];
 
 app.use(cors({
   origin: (origin, callback) => {
