@@ -22,8 +22,6 @@ const MyProfile = () => {
           const response = await axios.get(`${backendUrl}/api/user/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-
-          console.log('response', response);
           
           if (response.data.success) {
             setUserDetails(response.data.user);

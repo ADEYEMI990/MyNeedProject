@@ -6,6 +6,7 @@ import path from 'path';  // Path module is still used to resolve file paths
 import fs from 'fs';
 import userModel from "../models/userModel.js";
 import { v2 as cloudinary } from "cloudinary"
+import streamifier from 'streamifier';
 
 const createToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -188,46 +189,96 @@ const updateUserProfileImage = async (req, res) => {
     }
 
     // Check if a file was uploaded
+    // if (req.file) {
+    //   // Upload the image to Cloudinary
+    //   const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+    //     resource_type: 'image',
+    //     folder: 'profile_images',  // Optional: Set a folder in Cloudinary
+    //   });
+
+    //   const imageUrl = uploadResult.secure_url;  // Get the URL of the uploaded image
+
+    //   // Log to ensure image upload is being handled
+    //   console.log('Uploaded image: ', req.file);
+
+    //   // Remove the old profile image from Cloudinary (if it exists)
+    //   if (user.profileImage) {
+    //     // Extract public ID from old image URL to delete it from Cloudinary
+    //     const oldImagePublicId = user.profileImage.split('/').pop().split('.')[0];
+    //     await cloudinary.uploader.destroy(`profile_images/${oldImagePublicId}`);
+    //     console.log('Old image deleted successfully');
+    //   }
+
+    //   // Update the user's profile image URL in the database
+    //   user.profileImage = imageUrl;
+    //   await user.save();  // Save the updated user profile
+
+    //   console.log('Profile image updated in the database:', imageUrl);
+
+    //   // Return the updated profile image URL in the response
+    //   return res.status(200).json({
+    //      success: true, 
+    //      updatedProfileImage: imageUrl,
+    //      user: {
+    //       name: user.name,
+    //       email: user.email,
+    //       phone: user.phone || "Not Provided",  // Ensure phone field is included
+    //       profileImage: imageUrl  // Return the updated profile image URL
+    //     }
+    //   });
+    // } else {
+    //   return res.status(400).json({ success: false, message: "No image file provided" });
+    // }
+
     if (req.file) {
-      // Upload the image to Cloudinary
-      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-        resource_type: 'image',
-        folder: 'profile_images',  // Optional: Set a folder in Cloudinary
-      });
+      // Upload the image to Cloudinary using the buffer from memory
+      const uploadResult = await cloudinary.uploader.upload_stream(
+        { resource_type: 'image', folder: 'profile_images' },  // Optional: Set a folder in Cloudinary
+        async (error, result) => {
+          if (error) {
+            return res.status(500).json({ success: false, message: 'Error uploading image to Cloudinary' });
+          }
 
-      const imageUrl = uploadResult.secure_url;  // Get the URL of the uploaded image
+          const imageUrl = result.secure_url;  // Get the URL of the uploaded image
 
-      // Log to ensure image upload is being handled
-      console.log('Uploaded image: ', req.file);
+          // Log to ensure image upload is being handled
+          console.log('Uploaded image: ', req.file);
 
-      // Remove the old profile image from Cloudinary (if it exists)
-      if (user.profileImage) {
-        // Extract public ID from old image URL to delete it from Cloudinary
-        const oldImagePublicId = user.profileImage.split('/').pop().split('.')[0];
-        await cloudinary.uploader.destroy(`profile_images/${oldImagePublicId}`);
-        console.log('Old image deleted successfully');
-      }
+          // Remove the old profile image from Cloudinary (if it exists)
+          if (user.profileImage) {
+            // Extract public ID from old image URL to delete it from Cloudinary
+            const oldImagePublicId = user.profileImage.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`profile_images/${oldImagePublicId}`);
+            console.log('Old image deleted successfully');
+          }
 
-      // Update the user's profile image URL in the database
-      user.profileImage = imageUrl;
-      await user.save();  // Save the updated user profile
+          // Update the user's profile image URL in the database
+          user.profileImage = imageUrl;
+          await user.save();  // Save the updated user profile
 
-      console.log('Profile image updated in the database:', imageUrl);
+          console.log('Profile image updated in the database:', imageUrl);
 
-      // Return the updated profile image URL in the response
-      return res.status(200).json({
-         success: true, 
-         updatedProfileImage: imageUrl,
-         user: {
-          name: user.name,
-          email: user.email,
-          phone: user.phone || "Not Provided",  // Ensure phone field is included
-          profileImage: imageUrl  // Return the updated profile image URL
+          // Return the updated profile image URL in the response
+          return res.status(200).json({
+            success: true,
+            updatedProfileImage: imageUrl,
+            user: {
+              name: user.name,
+              email: user.email,
+              phone: user.phone || "Not Provided",  // Ensure phone field is included
+              profileImage: imageUrl  // Return the updated profile image URL
+            }
+          });
         }
-      });
+      );
+
+      // Pipe the buffer directly to Cloudinary's upload stream
+      streamifier.createReadStream(req.file.buffer).pipe(uploadResult);
     } else {
       return res.status(400).json({ success: false, message: "No image file provided" });
     }
+
+
   } catch (error) {
     console.error('Error updating profile image:', error);
 
