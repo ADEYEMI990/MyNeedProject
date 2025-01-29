@@ -73,8 +73,6 @@ import contact_img from './contact_img.png'
 import razorpay_logo from './razorpay_logo.png'
 import stripe_logo from './stripe_logo.png'
 import cross_icon from './cross_icon.png'
-import opay_logo from './opay_logo.png'
-import palmpay_logo from './palmpay_logo.png'
 import hero_img1 from './hero_img1.png'
 import hero_img2 from './hero_img2.png'
 import Paystack_Logo from './Paystack_Logo.png'
@@ -101,8 +99,6 @@ export const assets = {
     razorpay_logo,
     stripe_logo,
     cross_icon,
-    opay_logo,
-    palmpay_logo,
     Paystack_Logo
 }
 
