@@ -49,6 +49,9 @@ app.use(express.static(path.join(__dirname, 'public'))); // Adjust this path if 
 
 // Handle missing favicon.ico requests (optional)
 app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Handle missing favicon.png requests (optional)
+app.get('/favicon.png', (req, res) => res.status(204).end());
 // app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Function to check if the uploads directory is writable
