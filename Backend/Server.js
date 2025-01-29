@@ -83,8 +83,7 @@ app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use('/api/order', orderRouter);
-// Mount the cartRouter at the root path
-app.use('/', cartRouter);
+
 
 
 app.get("/api/cart/get",authUser, async (req, res) => {
