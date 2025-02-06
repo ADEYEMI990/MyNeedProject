@@ -351,7 +351,7 @@ const ShopContextProvider = (props) => {
         })
         .catch((error) => {
           // console.error("Error fetching cart:", error);
-          toast.error("Failed to fetch cart");
+          // toast.error("Failed to fetch cart");
         });
     }
   }, [token]); // Fetch cart on token change

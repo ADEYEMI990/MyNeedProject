@@ -76,7 +76,7 @@ const addProduct = async (req, res) => {
     const { name, description, price, category, subCategory, sizes, bestseller } = req.body;
 
       // Log the received price
-      console.log("Received price:", price);
+      // console.log("Received price:", price);
 
     // Validate price
     const parsedPrice = Number(price);
@@ -93,18 +93,45 @@ const addProduct = async (req, res) => {
       }
     }
 
+    // Ensure there are images to upload
+    if (images.length === 0) {
+      return res.status(400).json({ success: false, message: 'No images provided' });
+    }
+
     // Upload images to Cloudinary
-    let imagesUrl = await Promise.all(
-      images.map(async (item) => {
-        try {
-          const result = await cloudinary.uploader.upload(item.path, { resource_type: 'image' });
-          return result.secure_url;
-        } catch (uploadError) {
-          console.error("Cloudinary upload error:", uploadError);
-          throw new Error("Image upload failed");
-        }
-      })
-    );
+    // let imagesUrl = await Promise.all(
+    //   images.map(async (item) => {
+    //     try {
+    //       const result = await cloudinary.uploader.upload(item.path, { resource_type: 'image' });
+    //       return result.secure_url;
+    //     } catch (uploadError) {
+    //       console.error("Cloudinary upload error:", uploadError);
+    //       throw new Error("Image upload failed");
+    //     }
+    //   })
+    // );
+
+      // Upload images to Cloudinary using the buffer
+      let imagesUrl = await Promise.all(
+        images.map(async (item) => {
+          try {
+            const result = await new Promise((resolve, reject) => {
+              cloudinary.uploader.upload_stream(
+                { resource_type: 'image' },
+                (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result.secure_url);
+                }
+              ).end(item.buffer);
+            });
+  
+            return result;  // return the Cloudinary image URL
+          } catch (uploadError) {
+            console.error("Cloudinary upload error:", uploadError);
+            throw new Error("Image upload failed");
+          }
+        })
+      );
 
     // Prepare product data
     const productData = {

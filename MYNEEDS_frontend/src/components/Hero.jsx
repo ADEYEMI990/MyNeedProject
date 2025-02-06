@@ -5,21 +5,21 @@ import Slider from "react-slick"
 const ImageList = [
   {
     id: 1,
-    img: assets.hero_img,
+    img: assets.HH,
     title: "OUR BESTSELLERS",
     description:
       "Latest Arrivals",
   },
   {
     id: 2,
-    img: assets.hero_img1,
+    img: assets.H_4,
     title: "OUR BESTSELLERS",
     description:
       "Latest Arrivals",
   },
   {
     id: 3,
-    img: assets.hero_img2,
+    img: assets.H_3,
     title: "OUR BESTSELLERS",
     description:
       "Latest Arrivals",

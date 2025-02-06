@@ -75,6 +75,11 @@ import stripe_logo from './stripe_logo.png'
 import cross_icon from './cross_icon.png'
 import hero_img1 from './hero_img1.png'
 import hero_img2 from './hero_img2.png'
+import H_1 from './H_1.png'
+import H_2 from './H_2.png'
+import H_3 from './H_3.png'
+import H_4 from './H_4.png'
+import HH from './HH.png'
 import Paystack_Logo from './Paystack_Logo.png'
 
 
@@ -99,7 +104,12 @@ export const assets = {
     razorpay_logo,
     stripe_logo,
     cross_icon,
-    Paystack_Logo
+    Paystack_Logo,
+    H_1,
+    H_2,
+    H_3,
+    H_4,
+    HH
 }
 
 export const products = [
