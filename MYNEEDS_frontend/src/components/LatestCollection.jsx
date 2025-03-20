@@ -17,7 +17,7 @@ const LatestCollection = () => {
     <div className= 'my-10'>
       <div className= 'text-center py-8 text-3xl'>
         <Title text1={"LATEST"} text2={"COLLECTION"} />
-        <p data-aos ="fade-up" className= 'W-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600'>Discover why this is our most-loved product. And Experience the magic of our bestsellers.
+        <p data-aos ="fade-up" className= 'W-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600'>Discover why this is our most-loved products. And Experience the magic of our bestsellers.
         </p>
       </div>
       {/* Rendering Products */}
