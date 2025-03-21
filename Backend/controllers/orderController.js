@@ -252,7 +252,7 @@ const placeOrderPaystack = async (req,res) => {
     console.log("Paystack Options Sent:", options);
     console.log('Initializing Paystack payment...');
 
-    paystackInstance.transaction.initialize(options, (error,order)=> {
+    paystackInstance.transaction.initialize(options, (error,order)=> {                                                                          
       console.log('Callback reached');
       if (error) {
         console.log('Error initializing Paystack transaction:', error);

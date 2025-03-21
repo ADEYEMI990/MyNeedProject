@@ -51,7 +51,7 @@ const Orders = ({ token }) => {
 
   return (
     <div>
-      <h3>Order Page</h3>
+      <h3>Orders Page</h3>
       <div>
         {orders.map((order, index) => (
           <div key={index} className= "grid grid-cols-1 sm:grid-cols-[0.5fr_2fr_1fr] lg:grid-cols-[0.5fr_2fr_1fr_1fr_1fr] gap-3 items-start border-2 border-gray-200 p-5 md:p-8 my-3 md:my-4 text-xs sm:text-sm text-gray -700">
