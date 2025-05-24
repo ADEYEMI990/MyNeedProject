@@ -13,7 +13,7 @@ const About = () => {
       <div className= 'my-10 flex flex-col md:flex-row gap-16'>
         <img className= 'w-full md:max-w-[450px]' src={assets.about_img} alt="" />
         <div className= 'flex flex-col justify-center gap-6 md:w-2/4 text-gray-600'>
-          <p>At MyNeeds, fashion is more than just clothing it's a celebrations of individuality and self-expression. Born from a passion for creativity and a love for quality craftsmanship, we set out to redefine the shopping experiences. Our journey began with a simple belief: everyone deserves to feel confident and stylish in their own skin.</p>
+          <p>At MyNeeds, fashion is more than just clothing it's a celebrations of individuality and self-expression. Born from a passion for creativity and a love for quality craftsmanship, we set out to redefine the shopping experience. Our journey began with a simple belief: everyone deserves to feel confident and stylish in their own skin.</p>
           <p>Each piece in our collections tells a story, blending timeless designs with contemporary trends. We source sustainable materials and collaborate with talented artisans to ensure every item is crafted with care. Our mission is to empower you to embrace your unique style while making mindful choices.</p>
           <b className= 'text-gray-800'>Our Mission</b>
           <p> Our mission is to curate unique, high-quality pieces that inspire confidence and creativity in every individual. We strive to make fashion accessible, sustainable, and inclusive, celebrating diverse styles and stories. Join us on this journey to redefine your wardrobe and express your authentic self, one outfit at a time. Together, let’s make every day a fashion statement!</p>
