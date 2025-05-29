@@ -16,7 +16,7 @@ const About = () => {
           <p>At MyNeeds, fashion is more than just clothings it's a celebrations of individuality and self-expression. Born from a passion for creativity and a love for quality craftsmanship, we set out to redefine the shopping experience. Our journey began with a simple belief: everyone deserves to feels confident and stylish in their own skin.</p>
           <p>Each piece in our collections tells a story, blending timeless designs with contemporary trends. We source sustainable materials and collaborate with talented artisans to ensure every item is crafted with care. Our mission is to empower you to embrace your unique style while making mindful choices.</p>
           <b className= 'text-gray-800'>Our Mission</b>
-          <p> Our mission is to curate unique, high-quality pieces that inspire confidence and creativity in every individual. We strive to make fashion accessible, sustainable, and inclusive, celebrating diverse styles and stories. Join us on this journey to redefine your wardrobe and express your authentic self, one outfit at a time. Together, let’s make every day a fashion statement!</p>
+          <p> Our mission is to curate unique, high-quality pieces that inspire confidence and creativity in every individual. We strive to make fashion accessible, sustainable, and inclusive, celebrating diverse styles and stories. Join us on this journey to redefines your wardrobe and express your authentic self, one outfit at a time. Together, let’s make every day a fashion statement!</p>
         </div>
       </div>
 
